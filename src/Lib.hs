@@ -2,7 +2,9 @@ module Lib
     ( someFunc
     ) where
 
-someFunc :: (String, String, String, Bool) -> IO ()
-someFunc x = do
+import qualified ProgramOptions
+
+someFunc :: ProgramOptions.Config -> IO ()
+someFunc cfg = do
     putStrLn "someFunc"
-    putStrLn (show x)
+    print cfg

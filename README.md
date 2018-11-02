@@ -25,11 +25,10 @@ JSON format. All fields are optional except url.
     [
     {
       url: string,
-      format: string,
       name: string,
+      format: string,
       tags: [string],
       max: number,
-      format: string,
       match: string,
       reject: string,
       disabled: boolean
