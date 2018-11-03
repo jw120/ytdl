@@ -3,7 +3,7 @@ module Main where
 import Options.Applicative
 
 import Channels
-import Lib
+import Download (download)
 import qualified ProgramOptions
 
 opts :: ParserInfo ProgramOptions.Config
@@ -17,5 +17,4 @@ main = do
   channelsResult <- readChannels (ProgramOptions.channelsFile config)
   case channelsResult of
     Left err -> putStrLn err
-    Right channels -> print channels
-  someFunc config
+    Right channels -> mapM_ (download config) channels

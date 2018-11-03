@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Channels
-  ( Channel
+  ( Channel(..)
   , readChannels
   ) where
 
