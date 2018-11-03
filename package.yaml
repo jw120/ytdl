@@ -23,8 +23,8 @@ dependencies:
 - aeson
 - bytestring
 - filepath
-- turtle
 - optparse-applicative
+- process
 
 library:
   source-dirs: src
