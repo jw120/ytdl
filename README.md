@@ -6,9 +6,10 @@ Utility to manage downloads of videos from a set of youtube channels
 
 ## TODO
 
-* Get cli opts to work with optional args
+* Implement running
+* Add priorities?
+* Allow over-ride of all global parameters. Use .ytdl.json file for config (including output dir)
 * Check cli opts help makes sense
-* Put cli options definitions outside Main.hs
 
 ## Command line options
 
