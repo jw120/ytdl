@@ -12,7 +12,7 @@ import GHC.Generics
 import System.FilePath (FilePath)
 
 defaultChannelFile :: FilePath
-defaultChannelFile = "test_channels.json"
+defaultChannelFile = "/Users/joe/.ytdl.json"
 
 data Channel = Channel {
   url :: String,

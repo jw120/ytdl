@@ -7,8 +7,8 @@ import Options.Applicative
 
 data Config = Config {
   channelsFile :: Maybe String,
-  name :: Maybe String,
-  tag :: Maybe String,
+  matchName :: Maybe String,
+  matchTag :: Maybe String,
   simulate :: Bool
 } deriving (Show)
 

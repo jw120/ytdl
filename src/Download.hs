@@ -2,11 +2,13 @@ module Download
   ( download
   ) where
 
-import Data.Maybe (fromMaybe)
+import Data.Char (toLower)
+import Data.List (isInfixOf)
+import Data.Maybe (fromMaybe, isNothing)
 import System.Process (callProcess)
 
 import Channels
-import qualified ProgramOptions
+import ProgramOptions
 
 youtube_dl :: FilePath
 youtube_dl = "youtube_dl"
@@ -26,9 +28,38 @@ defaultDownloadArchive = "download-archive"
 defaultMaxVideos :: Int
 defaultMaxVideos = 25
 
-buildArgs :: ProgramOptions.Config -> Channel -> ([String], Bool)
-buildArgs config channel = (args, ProgramOptions.simulate config)
+-- Is first string a proper (case-insensitive) substring of the second
+isSubstring :: String -> String -> Bool
+isSubstring [] _ = False
+isSubstring pattern s = isInfixOf (map toLower pattern) (map toLower s)
+
+-- True if the config selects all channels
+selectsAll :: Config -> Bool
+selectsAll config = isNothing n && isNothing t
+    where
+      n = matchName config
+      t = matchTag config
+
+-- Is there a match between the name in the config and the name of the channel
+hasNameMatch :: Config -> Channel -> Bool
+hasNameMatch config channel = hasNameMatch' (matchName config) (name channel)
+    where
+      hasNameMatch' :: Maybe String -> Maybe String -> Bool
+      hasNameMatch' (Just pattern) (Just s) = isSubstring pattern s
+      hasNameMatch' _ _ = False
+
+-- Is there a match between the tag name in the config and a tag in the channel
+hasTagMatch :: Config -> Channel -> Bool
+hasTagMatch config channel = hasTagMatch' (matchTag config) (tags channel)
+    where
+      hasTagMatch' :: Maybe String -> Maybe [String] -> Bool
+      hasTagMatch' (Just pattern) (Just xs) = any (isSubstring pattern) xs
+      hasTagMatch' _ _ = False
+
+buildArgs :: ProgramOptions.Config -> Channel -> ([String], Bool, Bool)
+buildArgs config channel = (args, active, simulate config)
   where
+    active = selectsAll config || hasNameMatch config channel ||  hasTagMatch config channel
     args =
       [ "--format"
       , fromMaybe defaultFormat (format channel)
@@ -43,8 +74,8 @@ buildArgs config channel = (args, ProgramOptions.simulate config)
 
 download :: ProgramOptions.Config -> Channel -> IO ()
 download config channel = do
-  let (args, simulate) = buildArgs config channel
-  -- if simulate
-  putStrLn . unwords $ (youtube_dl :  args)
-  -- else
-  --  callProcess youtube_dl args
+  let (args, active, simulate) = buildArgs config channel
+  case (active, simulate) of
+    (True, True) -> putStrLn . unwords $ (youtube_dl :  args)
+    (True, False) -> putStrLn . unwords $ ("live" : youtube_dl :  args)
+    (False, _) -> return ()
