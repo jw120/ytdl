@@ -1,3 +1,5 @@
+-- Code to run each downlowd
+
 module Download
   ( download
   ) where
@@ -7,38 +9,43 @@ import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe, isNothing)
 import System.Process (callProcess)
 
-import Channels
-import ProgramOptions
+import Channels (Channel(..))
+import Config (Config(..))
+
+--
+-- Standard and default values for the download
+---
 
 youtube_dl :: FilePath
-youtube_dl = "youtube_dl"
+youtube_dl = "youtube-dl"
 
 baseUrl :: String
-baseUrl = "https://youtube.com"
+baseUrl = "https://youtube.com/"
+
+downloadArchive :: String
+downloadArchive = "download-archive"
+
+outputFormat :: String
+outputFormat = "%(uploader)s-%(upload_date)s-%(title)s.mp4"
 
 defaultFormat :: String
 defaultFormat = "18"
 
-defaultOutput :: String
-defaultOutput = "%(uploader)s-%(upload_date)s-%(title)s.mp4"
-
-defaultDownloadArchive :: String
-defaultDownloadArchive = "download-archive"
-
 defaultMaxVideos :: Int
 defaultMaxVideos = 25
+
+
+-- True if the config selects all channels
+selectsAll :: Config -> Bool
+selectsAll config = isNothing n && isNothing t
+  where
+    n = matchName config
+    t = matchTag config
 
 -- Is first string a proper (case-insensitive) substring of the second
 isSubstring :: String -> String -> Bool
 isSubstring [] _ = False
 isSubstring pattern s = isInfixOf (map toLower pattern) (map toLower s)
-
--- True if the config selects all channels
-selectsAll :: Config -> Bool
-selectsAll config = isNothing n && isNothing t
-    where
-      n = matchName config
-      t = matchTag config
 
 -- Is there a match between the name in the config and the name of the channel
 hasNameMatch :: Config -> Channel -> Bool
@@ -56,26 +63,42 @@ hasTagMatch config channel = hasTagMatch' (matchTag config) (tags channel)
       hasTagMatch' (Just pattern) (Just xs) = any (isSubstring pattern) xs
       hasTagMatch' _ _ = False
 
-buildArgs :: ProgramOptions.Config -> Channel -> ([String], Bool, Bool)
-buildArgs config channel = (args, active, simulate config)
+-- If the option is present return it with the given string, otherwise empty string
+expandOption :: String -> Maybe String -> [String]
+expandOption s (Just t) = [s, t]
+expandOption _ Nothing = []
+
+-- Build the channel's arguement list for youtube-dl
+buildArgs :: Config -> Channel -> ([String], Bool)
+buildArgs config channel = (args, active)
   where
-    active = selectsAll config || hasNameMatch config channel ||  hasTagMatch config channel
+    active :: Bool
+    active =
+      (disabled channel /= Just True) &&
+      (selectsAll config || hasNameMatch config channel ||  hasTagMatch config channel)
+    args :: [String]
     args =
+      (if (simulate config) then ["--simulate"] else []) ++
+      standardArgs ++
+      expandOption "--match-title" (match channel) ++
+      expandOption "--reject-title" (reject channel) ++
+      [baseUrl ++ (url channel)]
+    standardArgs :: [String]
+    standardArgs =
       [ "--format"
       , fromMaybe defaultFormat (format channel)
       , "--output"
-      , defaultOutput
+      , outputFormat
       , "--download-archive"
-      , defaultDownloadArchive
+      , downloadArchive
       , "--playlist-items"
-      , "1-" ++ (show defaultMaxVideos)
-      , baseUrl ++ (url channel)
+      , "1-" ++ (show (fromMaybe defaultMaxVideos (Channels.max channel)))
       ]
 
-download :: ProgramOptions.Config -> Channel -> IO ()
+download :: Config -> Channel -> IO ()
 download config channel = do
-  let (args, active, simulate) = buildArgs config channel
-  case (active, simulate) of
-    (True, True) -> putStrLn . unwords $ (youtube_dl :  args)
-    (True, False) -> putStrLn . unwords $ ("live" : youtube_dl :  args)
-    (False, _) -> return ()
+  let (args, active) = buildArgs config channel
+  case (active, echo config) of
+    (True, True) -> putStrLn . unwords $ youtube_dl : args
+    (True, False) -> callProcess youtube_dl args
+    _ -> return ()

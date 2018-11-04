@@ -1,4 +1,6 @@
-module ProgramOptions
+-- Data type and parser for configuration from command line options
+
+module Config
     ( Config(..)
     , parser
     ) where
@@ -9,7 +11,8 @@ data Config = Config {
   channelsFile :: Maybe String,
   matchName :: Maybe String,
   matchTag :: Maybe String,
-  simulate :: Bool
+  simulate :: Bool,
+  echo :: Bool
 } deriving (Show)
 
 parser :: Parser Config
@@ -29,4 +32,8 @@ parser = Config <$>
   switch
     ( long "simulate"
     <> short 's'
-    <> help "Enable simulation mode")
+    <> help "Pass --simulate option to youtube-dl") <*>
+  switch
+    ( long "echo"
+    <> short 'e'
+    <> help "Echo commands instead of running them")

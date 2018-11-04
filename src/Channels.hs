@@ -1,3 +1,5 @@
+-- Data type and reader for the list of channels
+
 {-# LANGUAGE DeriveGeneric #-}
 
 module Channels
