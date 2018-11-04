@@ -1,10 +1,10 @@
 module Main where
 
-import Options.Applicative
+import           Options.Applicative
 
-import Channels (readChannels)
-import Config (Config(..), parser)
-import Download (download)
+import           Channels            (readChannels)
+import           Config              (Config (..), parser)
+import           Download            (download)
 
 opts :: ParserInfo Config
 opts = info parser
@@ -16,5 +16,5 @@ main = do
   config <- execParser opts
   channelsResult <- readChannels (channelsFile config)
   case channelsResult of
-    Left err -> putStrLn err
+    Left err       -> putStrLn err
     Right channels -> mapM_ (download config) channels

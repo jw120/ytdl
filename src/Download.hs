@@ -4,13 +4,14 @@ module Download
   ( download
   ) where
 
-import Data.Char (toLower)
-import Data.List (isInfixOf)
-import Data.Maybe (fromMaybe, isNothing)
-import System.Process (callProcess)
+import           Control.Monad  (when)
+import           Data.Char      (toLower)
+import           Data.List      (isInfixOf)
+import           Data.Maybe     (fromMaybe, isNothing)
+import           System.Process (callProcess)
 
-import Channels (Channel(..))
-import Config (Config(..))
+import           Channels       (Channel (..))
+import           Config         (Config (..))
 
 --
 -- Standard and default values for the download
@@ -44,7 +45,7 @@ selectsAll config = isNothing n && isNothing t
 
 -- Is first string a proper (case-insensitive) substring of the second
 isSubstring :: String -> String -> Bool
-isSubstring [] _ = False
+isSubstring [] _      = False
 isSubstring pattern s = isInfixOf (map toLower pattern) (map toLower s)
 
 -- Is there a match between the name in the config and the name of the channel
@@ -53,7 +54,7 @@ hasNameMatch config channel = hasNameMatch' (matchName config) (name channel)
     where
       hasNameMatch' :: Maybe String -> Maybe String -> Bool
       hasNameMatch' (Just pattern) (Just s) = isSubstring pattern s
-      hasNameMatch' _ _ = False
+      hasNameMatch' _ _                     = False
 
 -- Is there a match between the tag name in the config and a tag in the channel
 hasTagMatch :: Config -> Channel -> Bool
@@ -61,12 +62,12 @@ hasTagMatch config channel = hasTagMatch' (matchTag config) (tags channel)
     where
       hasTagMatch' :: Maybe String -> Maybe [String] -> Bool
       hasTagMatch' (Just pattern) (Just xs) = any (isSubstring pattern) xs
-      hasTagMatch' _ _ = False
+      hasTagMatch' _ _                      = False
 
 -- If the option is present return it with the given string, otherwise empty string
 expandOption :: String -> Maybe String -> [String]
 expandOption s (Just t) = [s, t]
-expandOption _ Nothing = []
+expandOption _ Nothing  = []
 
 -- Build the channel's arguement list for youtube-dl
 buildArgs :: Config -> Channel -> ([String], Bool)
@@ -98,7 +99,5 @@ buildArgs config channel = (args, active)
 download :: Config -> Channel -> IO ()
 download config channel = do
   let (args, active) = buildArgs config channel
-  case (active, echo config) of
-    (True, True) -> putStrLn . unwords $ youtube_dl : args
-    (True, False) -> callProcess youtube_dl args
-    _ -> return ()
+  when active $ putStrLn . unwords $ youtube_dl : args
+  when (active && not (echo config)) $ callProcess youtube_dl args

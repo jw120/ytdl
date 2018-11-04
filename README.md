@@ -1,5 +1,8 @@
 # ytdl
 
+TODO - stylish haskell (install with stack and then run)
+TODO - hlint?
+
 Simple script for personal use.
 
 Utility to manage downloads of videos from a set of youtube channels using youtube-dl.

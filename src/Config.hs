@@ -5,14 +5,14 @@ module Config
     , parser
     ) where
 
-import Options.Applicative
+import           Options.Applicative
 
 data Config = Config {
   channelsFile :: Maybe String,
-  matchName :: Maybe String,
-  matchTag :: Maybe String,
-  simulate :: Bool,
-  echo :: Bool
+  matchName    :: Maybe String,
+  matchTag     :: Maybe String,
+  simulate     :: Bool,
+  echo         :: Bool
 } deriving (Show)
 
 parser :: Parser Config
