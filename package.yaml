@@ -30,7 +30,7 @@ library:
   source-dirs: src
 
 executables:
-  ytdl-exe:
+  ytdl:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
