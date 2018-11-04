@@ -8,7 +8,7 @@ import           Control.Monad  (when)
 import           Data.Char      (toLower)
 import           Data.List      (isInfixOf)
 import           Data.Maybe     (fromMaybe, isNothing)
-import           System.Process (callProcess)
+import           System.Process (rawSystem)
 
 import           Channels       (Channel (..))
 import           Config         (Config (..))
@@ -35,6 +35,8 @@ defaultFormat = "18"
 defaultMaxVideos :: Int
 defaultMaxVideos = 25
 
+defaultOtherOptions :: [String]
+defaultOtherOptions = ["--ignore-errors"]
 
 -- True if the config selects all channels
 selectsAll :: Config -> Bool
@@ -81,6 +83,7 @@ buildArgs config channel = (args, active)
     args =
       (if (simulate config) then ["--simulate"] else []) ++
       standardArgs ++
+      defaultOtherOptions ++
       expandOption "--match-title" (match channel) ++
       expandOption "--reject-title" (reject channel) ++
       [baseUrl ++ (url channel)]
@@ -99,5 +102,8 @@ buildArgs config channel = (args, active)
 download :: Config -> Channel -> IO ()
 download config channel = do
   let (args, active) = buildArgs config channel
-  when active $ putStrLn . unwords $ youtube_dl : args
-  when (active && not (echo config)) $ callProcess youtube_dl args
+  let n = (fromMaybe "Anonymous" (name channel)) ++ ": "
+  when active $ putStrLn . unwords $ n : youtube_dl : args
+  when (active && not (echo config)) $ do
+    rawSystem youtube_dl args
+    return ()
