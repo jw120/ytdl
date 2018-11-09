@@ -11,10 +11,11 @@ import           Data.Aeson           (FromJSON, eitherDecode)
 import qualified Data.ByteString.Lazy as B
 import           Data.Maybe           (fromMaybe)
 import           GHC.Generics
+import           System.Directory     (getHomeDirectory)
 import           System.FilePath      (FilePath)
 
 defaultChannelFile :: FilePath
-defaultChannelFile = "/Users/joe/.ytdl.json"
+defaultChannelFile = ".ytdl.json"
 
 data Channel = Channel {
   url      :: String,
@@ -30,4 +31,7 @@ data Channel = Channel {
 instance FromJSON Channel
 
 readChannels :: Maybe FilePath -> IO (Either String [Channel])
-readChannels p =  eitherDecode <$> B.readFile (fromMaybe defaultChannelFile p)
+readChannels p =  do
+  homeDir <- getHomeDirectory
+  let def = homeDir ++ "/" ++ defaultChannelFile
+  eitherDecode <$> B.readFile (fromMaybe def p)
