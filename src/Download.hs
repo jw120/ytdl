@@ -8,6 +8,7 @@ import           Control.Monad  (when)
 import           Data.Char      (toLower)
 import           Data.List      (isInfixOf)
 import           Data.Maybe     (fromMaybe, isNothing)
+import           System.IO      (hFlush, stdout)
 import           System.Process (rawSystem)
 
 import           Channels       (Channel (..))
@@ -103,7 +104,9 @@ download :: Config -> Channel -> IO ()
 download config channel = do
   let (args, active) = buildArgs config channel
   let n = (fromMaybe "Anonymous" (name channel)) ++ ": "
-  when active $ putStrLn . unwords $ n : youtube_dl : args
+  when active $ do
+    putStrLn . unwords $ n : youtube_dl : args
+    hFlush stdout
   when (active && not (echo config)) $ do
     rawSystem youtube_dl args
     return ()
