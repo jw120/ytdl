@@ -15,7 +15,7 @@ import           Channels       (Channel (..))
 import           Config         (Config (..))
 
 --
--- Standard and default values for the download
+-- Standard values for the download
 ---
 
 youtube_dl :: FilePath
@@ -30,14 +30,8 @@ downloadArchive = "download-archive"
 outputFormat :: String
 outputFormat = "%(uploader)s-%(upload_date)s-%(title)s.mp4"
 
-defaultFormat :: String
-defaultFormat = "18"
-
-defaultMaxVideos :: Int
-defaultMaxVideos = 25
-
-defaultOtherOptions :: [String]
-defaultOtherOptions = ["--ignore-errors"]
+otherOptions :: [String]
+otherOptions = ["--ignore-errors"]
 
 -- True if the config selects all channels
 selectsAll :: Config -> Bool
@@ -84,20 +78,20 @@ buildArgs config channel = (args, active)
     args =
       (if (simulate config) then ["--simulate"] else []) ++
       standardArgs ++
-      defaultOtherOptions ++
+      otherOptions ++
       expandOption "--match-title" (match channel) ++
       expandOption "--reject-title" (reject channel) ++
       [baseUrl ++ (url channel)]
     standardArgs :: [String]
     standardArgs =
       [ "--format"
-      , fromMaybe defaultFormat (format channel)
+      , fromMaybe (defaultFormat config) (format channel)
       , "--output"
       , outputFormat
       , "--download-archive"
       , downloadArchive
       , "--playlist-items"
-      , "1-" ++ (show (fromMaybe defaultMaxVideos (Channels.max channel)))
+      , "1-" ++ (show (fromMaybe (maxVideos config) (Channels.max channel)))
       ]
 
 download :: Config -> Channel -> IO ()

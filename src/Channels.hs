@@ -14,8 +14,8 @@ import           GHC.Generics
 import           System.Directory     (getHomeDirectory)
 import           System.FilePath      (FilePath)
 
-defaultChannelFile :: FilePath
-defaultChannelFile = ".ytdl.json"
+import           Config              (Config(..))
+import           Tilde                 (tildeExpand)
 
 data Channel = Channel {
   url      :: String,
@@ -30,8 +30,7 @@ data Channel = Channel {
 
 instance FromJSON Channel
 
-readChannels :: Maybe FilePath -> IO (Either String [Channel])
-readChannels p =  do
-  homeDir <- getHomeDirectory
-  let def = homeDir ++ "/" ++ defaultChannelFile
-  eitherDecode <$> B.readFile (fromMaybe def p)
+readChannels :: Config -> IO (Either String [Channel])
+readChannels config =  do
+  f <- tildeExpand $ channelsFile config
+  eitherDecode <$> B.readFile f
