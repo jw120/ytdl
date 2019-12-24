@@ -1,13 +1,14 @@
 -- Code to run each downlowd
 
 module Download
-  ( download
+  ( downloadAll
   ) where
 
 import           Control.Monad  (when)
 import           Data.Char      (toLower)
 import           Data.List      (isInfixOf)
 import           Data.Maybe     (fromMaybe, isNothing)
+import           System.Exit    (ExitCode(..))
 import           System.IO      (hFlush, stdout)
 import           System.Process (rawSystem)
 
@@ -94,13 +95,21 @@ buildArgs config channel = (args, active)
       , "1-" ++ (show (fromMaybe (maxVideos config) (Channels.max channel)))
       ]
 
-download :: Config -> Channel -> IO ()
+download :: Config -> Channel -> IO ExitCode
 download config channel = do
   let (args, active) = buildArgs config channel
   let n = (fromMaybe "Anonymous" (name channel)) ++ ": "
   when active $ do
     putStrLn . unwords $ n : youtube_dl : args
     hFlush stdout
-  when (active && not (echo config)) $ do
-    rawSystem youtube_dl args
-    return ()
+  if (active && not (echo config)) then rawSystem youtube_dl args else return ExitSuccess
+
+downloadAll :: Config -> [Channel] -> IO ()
+downloadAll config = go
+    where
+        go :: [Channel] -> IO ()
+        go (c : cs) = do
+          exitCode <- download config c
+          case exitCode of
+            ExitSuccess -> go cs
+            ExitFailure x -> putStrLn $ "Failed with code " ++ show x

@@ -6,7 +6,7 @@ import           System.Directory    (setCurrentDirectory)
 import           Channels            (readChannels)
 import           Config              (Config(..), readConfig)
 import           CLOpts              (CLOpts(..), parser)
-import           Download            (download)
+import           Download            (downloadAll)
 import           Tilde               (tildeExpand)
 
 opts :: ParserInfo CLOpts
@@ -29,4 +29,4 @@ main = do
       channelsResult <- readChannels config
       case channelsResult of
         Left channelsErr       -> putStrLn channelsErr
-        Right channels -> mapM_ (download config) channels
+        Right channels -> downloadAll config channels
