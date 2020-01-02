@@ -2,3 +2,4 @@
 ytdl.cabal
 test_channels.json
 *~
+stack.yaml.lock
