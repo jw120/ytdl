@@ -6,7 +6,9 @@ module Defaults
   , maxVideos
   , targetDir
   , videoFormat
-  ) where
+  , ytdlCommand
+  )
+where
 
 channelsFile :: FilePath
 channelsFile = "~/.ytdl_channels.json"
@@ -22,3 +24,6 @@ targetDir = Nothing
 
 videoFormat :: String
 videoFormat = "18"
+
+ytdlCommand :: String
+ytdlCommand = "youtube-dl"
