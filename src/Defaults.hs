@@ -26,4 +26,4 @@ videoFormat :: String
 videoFormat = "18"
 
 ytdlCommand :: String
-ytdlCommand = "youtube-dl"
+ytdlCommand = "yt-dlp"
